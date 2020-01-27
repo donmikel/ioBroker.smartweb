@@ -1,4 +1,6 @@
+<<<<<<< HEAD
 ![Logo](admin/smartweb.png)
+
 # ioBroker.smartweb
 
 [![NPM version](http://img.shields.io/npm/v/iobroker.smartweb.svg)](https://www.npmjs.com/package/iobroker.smartweb)
@@ -15,60 +17,68 @@
 SmartWeb integration
 
 ## Developer manual
+
 This section is intended for the developer. It can be deleted later
 
 ### Getting started
 
 You are almost done, only a few steps left:
+
 1. Create a new repository on GitHub with the name `ioBroker.smartweb`
-1. Initialize the current folder as a new git repository:  
+1. Initialize the current folder as a new git repository:
     ```bash
     git init
     git add .
     git commit -m "Initial commit"
     ```
-1. Link your local repository with the one on GitHub:  
+1. Link your local repository with the one on GitHub:
+
     ```bash
     git remote add origin https://github.com/donmikel/ioBroker.smartweb
     ```
 
-1. Push all files to the GitHub repo:  
+1. Push all files to the GitHub repo:
     ```bash
     git push origin master
     ```
 1. Head over to [src/main.ts](src/main.ts) and start programming!
 
 ### Scripts in `package.json`
+
 Several npm scripts are predefined for your convenience. You can run them using `npm run <scriptname>`
-| Script name | Description                                              |
+| Script name | Description |
 |-------------|----------------------------------------------------------|
-| `build`    | Re-compile the TypeScript sources.                       |
-| `watch`     | Re-compile the TypeScript sources and watch for changes. |
-| `test:ts`   | Executes the tests you defined in `*.test.ts` files.     |
-| `test:package`    | Ensures your `package.json` and `io-package.json` are valid. |
-| `test:unit`       | Tests the adapter startup with unit tests (fast, but might require module mocks to work). |
+| `build` | Re-compile the TypeScript sources. |
+| `watch` | Re-compile the TypeScript sources and watch for changes. |
+| `test:ts` | Executes the tests you defined in `*.test.ts` files. |
+| `test:package` | Ensures your `package.json` and `io-package.json` are valid. |
+| `test:unit` | Tests the adapter startup with unit tests (fast, but might require module mocks to work). |
 | `test:integration`| Tests the adapter startup with an actual instance of ioBroker. |
 | `test` | Performs a minimal test run on package files and your tests. |
 | `lint` | Runs `ESLint` to check your code for formatting errors and potential bugs. |
 
 ### Writing tests
-When done right, testing code is invaluable, because it gives you the 
-confidence to change your code while knowing exactly if and when 
-something breaks. A good read on the topic of test-driven development 
-is https://hackernoon.com/introduction-to-test-driven-development-tdd-61a13bc92d92. 
-Although writing tests before the code might seem strange at first, but it has very 
+
+When done right, testing code is invaluable, because it gives you the
+confidence to change your code while knowing exactly if and when
+something breaks. A good read on the topic of test-driven development
+is https://hackernoon.com/introduction-to-test-driven-development-tdd-61a13bc92d92.
+Although writing tests before the code might seem strange at first, but it has very
 clear upsides.
 
 The template provides you with basic tests for the adapter startup and package files.
 It is recommended that you add your own tests into the mix.
 
 ### Publishing the adapter
-To get your adapter released in ioBroker, please refer to the documentation 
+
+To get your adapter released in ioBroker, please refer to the documentation
 of [ioBroker.repositories](https://github.com/ioBroker/ioBroker.repositories#requirements-for-adapter-to-get-added-to-the-latest-repository).
 
 ### Test the adapter manually on a local ioBroker installation
+
 In order to install the adapter locally without publishing, the following steps are recommended:
-1. Create a tarball from your dev directory:  
+
+1. Create a tarball from your dev directory:
     ```bash
     npm pack
     ```
@@ -80,15 +90,18 @@ In order to install the adapter locally without publishing, the following steps 
     ```
 
 For later updates, the above procedure is not necessary. Just do the following:
+
 1. Overwrite the changed files in the adapter directory (`/opt/iobroker/node_modules/iobroker.smartweb`)
 1. Execute `iobroker upload smartweb` on the ioBroker host
 
 ## Changelog
 
 ### 0.0.1
-* (donmikel) initial release
+
+-   (donmikel) initial release
 
 ## License
+
 MIT License
 
 Copyright (c) 2020 donmikel <podmogov@inbox.ru>
