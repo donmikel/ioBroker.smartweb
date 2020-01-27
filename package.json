@@ -1,0 +1,71 @@
+{
+  "name": "iobroker.smartweb",
+  "version": "0.0.1",
+  "description": "SmartWeb integration",
+  "author": {
+    "name": "donmikel",
+    "email": "podmogov@inbox.ru"
+  },
+  "homepage": "https://github.com/donmikel/ioBroker.smartweb",
+  "license": "MIT",
+  "keywords": [
+    "smartweb",
+    "adapter"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/donmikel/ioBroker.smartweb"
+  },
+  "dependencies": {
+    "@iobroker/adapter-core": "^2.1.0",
+    "serialport": "^8.0.6"
+  },
+  "devDependencies": {
+    "@iobroker/testing": "^2.0.1",
+    "@types/chai": "^4.2.7",
+    "@types/chai-as-promised": "^7.1.2",
+    "@types/gulp": "^4.0.6",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^10.17.13",
+    "@types/proxyquire": "^1.3.28",
+    "@types/sinon": "^7.5.1",
+    "@types/sinon-chai": "^3.2.3",
+    "@typescript-eslint/eslint-plugin": "^2.16.0",
+    "@typescript-eslint/parser": "^2.16.0",
+    "axios": "^0.19.1",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.9.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "gulp": "^4.0.2",
+    "mocha": "^7.0.0",
+    "modbus-stream": "github:donmikel/stream",
+    "prettier": "^1.19.1",
+    "proxyquire": "^2.1.3",
+    "rimraf": "^3.0.0",
+    "sinon": "^8.1.0",
+    "sinon-chai": "^3.4.0",
+    "source-map-support": "^0.5.16",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5"
+  },
+  "main": "build/main.js",
+  "scripts": {
+    "prebuild": "rimraf ./build",
+    "build:ts": "tsc -p tsconfig.build.json",
+    "build": "npm run build:ts",
+    "watch:ts": "tsc -p tsconfig.build.json --watch",
+    "watch": "npm run watch:ts",
+    "test:ts": "mocha --opts test/mocha.custom.opts",
+    "test:package": "mocha test/package --exit",
+    "test:unit": "mocha test/unit --exit",
+    "test:integration": "mocha test/integration --exit",
+    "test": "npm run test:ts && npm run test:package",
+    "lint": "eslint --ext .ts src"
+  },
+  "bugs": {
+    "url": "https://github.com/donmikel/ioBroker.smartweb/issues"
+  },
+  "readmeFilename": "README.md"
+}

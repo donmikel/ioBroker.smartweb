@@ -1,0 +1,94 @@
+{
+    "common": {
+        "name": "smartweb",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial release",
+                "de": "Erstveröffentlichung",
+                "ru": "Начальная версия",
+                "pt": "lançamento inicial",
+                "nl": "Eerste uitgave",
+                "fr": "Première version",
+                "it": "Versione iniziale",
+                "es": "Versión inicial",
+                "pl": "Pierwsze wydanie",
+                "zh-cn": "首次出版"
+            }
+        },
+        "title": "SmartWeb",
+        "titleLang": {
+            "en": "SmartWeb",
+            "de": "SmartWeb",
+            "ru": "SmartWeb",
+            "pt": "SmartWeb",
+            "nl": "SmartWeb",
+            "fr": "SmartWeb",
+            "it": "SmartWeb",
+            "es": "SmartWeb",
+            "pl": "SmartWeb",
+            "zh-cn": "智能网"
+        },
+        "desc": {
+            "en": "SmartWeb integration",
+            "de": "SmartWeb-Integration",
+            "ru": "Интеграция SmartWeb",
+            "pt": "Integração SmartWeb",
+            "nl": "SmartWeb-integratie",
+            "fr": "Intégration SmartWeb",
+            "it": "Integrazione di SmartWeb",
+            "es": "Integración SmartWeb",
+            "pl": "Integracja SmartWeb",
+            "zh-cn": "SmartWeb集成"
+        },
+        "authors": ["donmikel <podmogov@inbox.ru>"],
+        "keywords": ["smartweb"],
+        "license": "MIT",
+        "platform": "Javascript/Node.js",
+        "main": "build/main.js",
+        "icon": "smartweb.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/donmikel/ioBroker.smartweb/master/admin/smartweb.png",
+        "readme": "https://github.com/donmikel/ioBroker.smartweb/blob/master/README.md",
+        "loglevel": "info",
+        "mode": "daemon",
+        "type": "iot-systems",
+        "compact": true,
+        "materialize": true,
+        "dependencies": [
+            {
+                "js-controller": ">=1.4.2"
+            }
+        ]
+    },
+    "native": {
+        "host": "",
+        "port": "502",
+        "login": "expert",
+        "password": "expert"
+    },
+    "objects": [],
+    "instanceObjects": [
+        {
+            "_id": "info",
+            "type": "channel",
+            "common": {
+                "name": "Information"
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.connection",
+            "type": "state",
+            "common": {
+                "role": "indicator.connected",
+                "name": "If connected to SmartWeb",
+                "type": "boolean",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        }
+    ]
+}
