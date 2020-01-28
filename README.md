@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ![Logo](admin/smartweb.png)
 
 # ioBroker.smartweb
