@@ -53,7 +53,7 @@ Several npm scripts are predefined for your convenience. You can run them using 
 | `test:package` | Ensures your `package.json` and `io-package.json` are valid. |
 | `test:unit` | Tests the adapter startup with unit tests (fast, but might require module mocks to work). |
 | `test:integration`| Tests the adapter startup with an actual instance of ioBroker. |
-| `test` | Performs a minimal test run on package files and your tests. |
+| `test` | Performs a minimal test run on package filesand your tests. |
 | `lint` | Runs `ESLint` to check your code for formatting errors and potential bugs. |
 
 ### Writing tests
