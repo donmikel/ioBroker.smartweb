@@ -5,7 +5,7 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 import * as utils from '@iobroker/adapter-core';
-import * as modbus from 'modbus-stream';
+import ModbusRTU from 'modbus-serial';
 
 // Load your modules here, e.g.:
 // import * as fs from "fs";
@@ -70,16 +70,45 @@ class Smartweb extends utils.Adapter {
         // in this template all states changes inside the adapters namespace are subscribed
         this.subscribeStates('*');
         await this.setStateAsync('info.connection', false);
-        modbus.tcp.connect(502, '192.168.88.31', { debug: 'automaton-2454' }, (err, connection) => {
-            if (err) throw err;
+        const client = new ModbusRTU();
+        //client.close();
 
-            connection.readHoldingRegisters({ address: 40145, quantity: 1 }, async (err, res) => {
-                if (err) throw err;
-
-                await this.setStateAsync('testVariable', { val: res?.response.data, ack: true });
+        client.setID(1);
+        client.setTimeout(5000);
+        client
+            .connectTCP('192.168.88.31', { port: 502 })
+            .then(async () => {
+                await this.setStateAsync('info.connection', true);
+                this.log.info('Connected, wait fot read.');
+            })
+            .catch(function(e) {
+                throw e;
             });
-            // do something with connection
-        });
+
+        if (client.isOpen) {
+            await client
+                .readHoldingRegisters(40145, 1)
+                .then(async data => {
+                    await this.setStateAsync('testVariable', { val: data.data[0], ack: true });
+                })
+                .catch(function(e) {
+                    throw e;
+                });
+        }
+
+        // modbus.tcp.connect(502, '192.168.88.31', { debug: 'automaton-2454' }, async (err, connection) => {
+        //     if (err) {
+        //         throw err;
+        //     } else {
+        //         await this.setStateAsync('info.connection', true);
+        //     }
+        //     connection.readHoldingRegisters({ address: 40145, quantity: 1 }, async (err, res) => {
+        //         if (err) throw err;
+
+        //         await this.setStateAsync('testVariable', { val: res?.response.data, ack: true });
+        //     });
+        //     // do something with connection
+        // });
         /*
 		setState examples
 		you will notice that each setState will cause the stateChange event to fire (because of above subscribeStates cmd)

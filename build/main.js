@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
-const modbus = require("modbus-stream");
+const modbus_serial_1 = require("modbus-serial");
 // Load your modules here, e.g.:
 // import * as fs from "fs";
 // Augment the adapter.config object with the actual types
@@ -70,17 +70,41 @@ class Smartweb extends utils.Adapter {
             // in this template all states changes inside the adapters namespace are subscribed
             this.subscribeStates('*');
             yield this.setStateAsync('info.connection', false);
-            modbus.tcp.connect(502, '192.168.88.31', { debug: 'automaton-2454' }, (err, connection) => {
-                if (err)
-                    throw err;
-                connection.readHoldingRegisters({ address: 40145, quantity: 1 }, (err, res) => __awaiter(this, void 0, void 0, function* () {
-                    var _a;
-                    if (err)
-                        throw err;
-                    yield this.setStateAsync('testVariable', { val: (_a = res) === null || _a === void 0 ? void 0 : _a.response.data, ack: true });
-                }));
-                // do something with connection
+            const client = new modbus_serial_1.default();
+            //client.close();
+            client.setID(1);
+            client.setTimeout(5000);
+            client
+                .connectTCP('192.168.88.31', { port: 502 })
+                .then(() => __awaiter(this, void 0, void 0, function* () {
+                yield this.setStateAsync('info.connection', true);
+                this.log.info('Connected, wait fot read.');
+            }))
+                .catch(function (e) {
+                throw e;
             });
+            if (client.isOpen) {
+                yield client
+                    .readHoldingRegisters(40145, 1)
+                    .then((data) => __awaiter(this, void 0, void 0, function* () {
+                    yield this.setStateAsync('testVariable', { val: data.data[0], ack: true });
+                }))
+                    .catch(function (e) {
+                    throw e;
+                });
+            }
+            // modbus.tcp.connect(502, '192.168.88.31', { debug: 'automaton-2454' }, async (err, connection) => {
+            //     if (err) {
+            //         throw err;
+            //     } else {
+            //         await this.setStateAsync('info.connection', true);
+            //     }
+            //     connection.readHoldingRegisters({ address: 40145, quantity: 1 }, async (err, res) => {
+            //         if (err) throw err;
+            //         await this.setStateAsync('testVariable', { val: res?.response.data, ack: true });
+            //     });
+            //     // do something with connection
+            // });
             /*
             setState examples
             you will notice that each setState will cause the stateChange event to fire (because of above subscribeStates cmd)
