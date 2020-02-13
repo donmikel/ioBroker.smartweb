@@ -85,6 +85,7 @@ class Smartweb extends utils.Adapter {
                 .catch(function (e) {
                 throw e;
             });
+            this.log.info('isOpen = ' + client.isOpen);
             if (client.isOpen) {
                 yield client
                     .readHoldingRegisters(40145, 1)
