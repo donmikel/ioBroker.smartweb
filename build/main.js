@@ -72,14 +72,15 @@ class Smartweb extends utils.Adapter {
             yield this.setStateAsync('info.connection', false);
             const client = new modbus_serial_1.default();
             //client.close();
+            this.log.info('Begin connecting');
             client.setID(1);
             client.setTimeout(5000);
             client
                 .connectTCP('192.168.88.31', { port: 502 })
-                .then(() => __awaiter(this, void 0, void 0, function* () {
-                yield this.setStateAsync('info.connection', true);
+                .then(() => {
+                this.setStateAsync('info.connection', true);
                 this.log.info('Connected, wait fot read.');
-            }))
+            })
                 .catch(function (e) {
                 throw e;
             });
