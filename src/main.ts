@@ -79,25 +79,26 @@ class Smartweb extends utils.Adapter {
         client.setTimeout(5000);
         client
             .connectTCP('192.168.88.31', { port: 502 })
-            .then(() => {
+            .then(async () => {
                 this.setStateAsync('info.connection', true);
                 this.log.info('Connected, wait fot read.');
+
+                if (client.isOpen) {
+                    await client
+                        .readHoldingRegisters(40145, 1)
+                        .then(async data => {
+                            await this.setStateAsync('testVariable', { val: data.data[0], ack: true });
+                        })
+                        .catch(function(e) {
+                            throw e;
+                        });
+                }
             })
             .catch(function(e) {
                 throw e;
             });
 
         this.log.info('isOpen = ' + client.isOpen);
-        if (client.isOpen) {
-            await client
-                .readHoldingRegisters(40145, 1)
-                .then(async data => {
-                    await this.setStateAsync('testVariable', { val: data.data[0], ack: true });
-                })
-                .catch(function(e) {
-                    throw e;
-                });
-        }
 
         // modbus.tcp.connect(502, '192.168.88.31', { debug: 'automaton-2454' }, async (err, connection) => {
         //     if (err) {
