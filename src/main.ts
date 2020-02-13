@@ -5,7 +5,6 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 import * as utils from '@iobroker/adapter-core';
-import ModbusRTU from 'modbus-serial';
 
 // Load your modules here, e.g.:
 // import * as fs from "fs";
@@ -70,38 +69,38 @@ class Smartweb extends utils.Adapter {
         // in this template all states changes inside the adapters namespace are subscribed
         this.subscribeStates('*');
         await this.setStateAsync('info.connection', false);
-        let client;
-        try {
-            client = new ModbusRTU();
-        } catch (error) {
-            throw error;
-        }
+        // let client;
+        // try {
+        //     client = new ModbusRTU();
+        // } catch (error) {
+        //     throw error;
+        // }
 
         //client.close();
 
         this.log.info('Begin connecting');
-        client.setID(1);
-        client.setTimeout(5000);
-        client
-            .connectTCP('192.168.88.31', { port: 502 })
-            .then(() => {
-                this.setStateAsync('info.connection', true);
-                this.log.info('Connected, wait fot read.');
-            })
-            .catch(function(e) {
-                throw e;
-            });
+        // client.setID(1);
+        // client.setTimeout(5000);
+        // client
+        //     .connectTCP('192.168.88.31', { port: 502 })
+        //     .then(() => {
+        //         this.setStateAsync('info.connection', true);
+        //         this.log.info('Connected, wait fot read.');
+        //     })
+        //     .catch(function(e) {
+        //         throw e;
+        //     });
 
-        if (client.isOpen) {
-            await client
-                .readHoldingRegisters(40145, 1)
-                .then(async data => {
-                    await this.setStateAsync('testVariable', { val: data.data[0], ack: true });
-                })
-                .catch(function(e) {
-                    throw e;
-                });
-        }
+        // if (client.isOpen) {
+        //     await client
+        //         .readHoldingRegisters(40145, 1)
+        //         .then(async data => {
+        //             await this.setStateAsync('testVariable', { val: data.data[0], ack: true });
+        //         })
+        //         .catch(function(e) {
+        //             throw e;
+        //         });
+        // }
 
         // modbus.tcp.connect(502, '192.168.88.31', { debug: 'automaton-2454' }, async (err, connection) => {
         //     if (err) {
