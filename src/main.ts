@@ -86,6 +86,7 @@ class Smartweb extends utils.Adapter {
                 await client
                     .readHoldingRegisters(40145, 1)
                     .then(async data => {
+                        this.log.info('Data: ' + data.data);
                         await this.setStateAsync('testVariable', { val: data.data[0], ack: true });
                     })
                     .catch(function(e) {
