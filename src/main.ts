@@ -58,7 +58,7 @@ class Smartweb extends utils.Adapter {
         await this.setObjectAsync('testVariable', {
             type: 'state',
             common: {
-                name: 'testVariable',
+                name: 'testVariable1',
                 type: 'string',
                 role: 'value.temperature',
                 read: true,
