@@ -70,7 +70,7 @@ class Smartweb extends utils.Adapter {
         // in this template all states changes inside the adapters namespace are subscribed
         this.subscribeStates('*');
         await this.setStateAsync('info.connection', false);
-        const client = new ModbusRTU();
+        let client = new ModbusRTU();
         //client.close();
 
         this.log.info('Begin connecting');
