@@ -89,12 +89,12 @@ class Smartweb extends utils.Adapter {
                         this.log.info('Data: ' + data.data);
                         await this.setStateAsync('testVariable', { val: data.data[0], ack: true });
                     })
-                    .catch(function(e) {
-                        throw e;
+                    .catch(e => {
+                        this.log.error(e.message);
                     });
             })
-            .catch(function(e) {
-                throw e;
+            .catch(e => {
+                this.log.error(e.message);
             });
 
         // modbus.tcp.connect(502, '192.168.88.31', { debug: 'automaton-2454' }, async (err, connection) => {

@@ -71,7 +71,7 @@ class Smartweb extends utils.Adapter {
             // in this template all states changes inside the adapters namespace are subscribed
             this.subscribeStates('*');
             yield this.setStateAsync('info.connection', false);
-            const client = new modbus_serial_1();
+            const client = new modbus_serial_1.default();
             //client.close();
             this.log.info('Begin connecting');
             client.setID(1);
@@ -88,12 +88,12 @@ class Smartweb extends utils.Adapter {
                     this.log.info('Data: ' + data.data);
                     yield this.setStateAsync('testVariable', { val: data.data[0], ack: true });
                 }))
-                    .catch(function (e) {
-                    throw e;
+                    .catch(e => {
+                    this.log.error(e.message);
                 });
             }))
-                .catch(function (e) {
-                throw e;
+                .catch(e => {
+                this.log.error(e.message);
             });
             // modbus.tcp.connect(502, '192.168.88.31', { debug: 'automaton-2454' }, async (err, connection) => {
             //     if (err) {
