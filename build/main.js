@@ -83,7 +83,7 @@ class Smartweb extends utils.Adapter {
                 this.log.info('Connected, wait fot read.');
                 this.log.info('isOpen = ' + client.isOpen);
                 yield client
-                    .readHoldingRegisters(40145, 1)
+                    .readHoldingRegisters(4014, 1)
                     .then((data) => __awaiter(this, void 0, void 0, function* () {
                     this.log.info('Data: ' + data.data);
                     yield this.setStateAsync('testVariable', { val: data.data[0], ack: true });
