@@ -78,7 +78,7 @@ class Smartweb extends utils.Adapter {
         client.setID(1);
         client.setTimeout(5000);
         client
-            .connectTCP('192.168.88.31', { port: 502 })
+            .connectTCP('192.168.88.42', { port: 502 })
             .then(async () => {
                 this.setStateAsync('info.connection', true);
                 this.log.info('Connected, wait fot read.');
