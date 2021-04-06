@@ -1,5 +1,11 @@
 import axios from 'axios';
 
+const headerRegex = /(?:\()(?<num>\d+)(?:\)\s*)(?<type>.+)(?:\s*:\s*)(?<name>.+)/gi;
+const addressRegex = /(?:modbus:\s*)(?<port>\d+)\s*(?<readonly>R\/O)*/gi;
+const valueSizeRegex = /(?<id>\d+)\s*$/gi;
+
+export const PROGRAM_HEADER_PARAM_NAME = 'Заголовок программы';
+
 /**
  * Tests whether the given variable is a real object and not an Array
  * @param it The variable to test
@@ -40,5 +46,40 @@ export async function translateText(text: string, targetLang: string): Promise<s
         throw new Error('Invalid response for translate request');
     } catch (e) {
         throw new Error(`Could not translate to "${targetLang}": ${e}`);
+    }
+}
+
+export function parseHeader(text: string | undefined) {
+    if (text) {
+        const match = headerRegex.exec(text);
+        if (match?.groups) {
+            return {
+                id: Number(match.groups.num.trim()),
+                program: match.groups.type.trim(),
+                param: match.groups.name.trim(),
+            };
+        }
+    }
+}
+
+export function parseAddressSize(text: string | undefined): number {
+    if (text) {
+        const match = valueSizeRegex.exec(text);
+        if (match?.groups) {
+            return Number(match.groups.id.trim()) | 1;
+        }
+    }
+    return 1;
+}
+
+export function parseAddress(text: string | undefined) {
+    if (text) {
+        const match = addressRegex.exec(text);
+        if (match?.groups) {
+            return {
+                port: Number(match.groups.port.trim()),
+                isReadonly: match.groups.readonly == 'R/O' ? true : false,
+            };
+        }
     }
 }

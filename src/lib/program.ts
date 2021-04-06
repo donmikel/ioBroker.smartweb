@@ -1,15 +1,17 @@
-import { Parameters } from './parameters';
+import { Parameter } from './parameter';
 
 export class Program {
-    private type: string;
-    private name: string;
-    private id: number;
-    params: Map<string, Parameters> = new Map<string, Parameters>();
+    name: string;
+    id: number;
+    params: Map<string, Parameter> = new Map<string, Parameter>();
 
-    constructor(type: string, name: string, id: number) {
-        this.type = type;
+    constructor(id: number, name: string) {
         this.id = id;
         this.name = name;
-        //this.params = params;
+    }
+
+    public addParam(name: string, regNumber: number | undefined, isReadonly: boolean, valueSize: number) {
+        this.params.set(name, new Parameter(name, regNumber, isReadonly, valueSize));
+        return;
     }
 }

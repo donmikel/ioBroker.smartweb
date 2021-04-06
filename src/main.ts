@@ -5,8 +5,12 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 import * as utils from '@iobroker/adapter-core';
+import axios from 'axios';
+import cheerio from 'cheerio';
 import ModbusRTU from 'modbus-serial';
-
+import { Parameter } from './lib/parameter';
+import { Program } from './lib/program';
+import { parseAddress, parseAddressSize, parseHeader, PROGRAM_HEADER_PARAM_NAME } from './lib/tools';
 // Load your modules here, e.g.:
 // import * as fs from "fs";
 
@@ -46,8 +50,8 @@ class Smartweb extends utils.Adapter {
 
         // The adapters config (in the instance object everything under the attribute "native") is accessible via
         // this.config:
-        // this.log.info('config login: ' + this.config.login);
-        // this.log.info('config pass: ' + this.config.password);
+        this.log.info('config login: ' + this.config.login);
+        this.log.info('config pass: ' + this.config.password);
 
         /*
 		For every state in the system there has to be also an object of type state
@@ -56,17 +60,17 @@ class Smartweb extends utils.Adapter {
         */
 
         this.log.info('Start adapter');
-        await this.setObjectAsync('testVariable', {
-            type: 'state',
-            common: {
-                name: 'testVariable1',
-                type: 'string',
-                role: 'value.temperature',
-                read: true,
-                write: true,
-            },
-            native: {},
-        });
+        // await this.setObjectAsync('testVariable', {
+        //     type: 'state',
+        //     common: {
+        //         name: 'testVariable1',
+        //         type: 'string',
+        //         role: 'value.temperature',
+        //         read: true,
+        //         write: true,
+        //     },
+        //     native: {},
+        // });
 
         // in this template all states changes inside the adapters namespace are subscribed
         this.subscribeStates('*');
@@ -75,28 +79,31 @@ class Smartweb extends utils.Adapter {
 
         //client.close();
 
-        this.log.info('Begin connecting');
-        client.setID(1);
-        client.setTimeout(5000);
-        client
-            .connectTCP('192.168.88.42', { port: 502 })
-            .then(async () => {
-                this.setStateAsync('info.connection', true);
-                this.log.info('Connected, wait fot read.');
-                this.log.info('isOpen = ' + client.isOpen);
-                await client
-                    .readHoldingRegisters(40145, 1)
-                    .then(async data => {
-                        this.log.info('Data: ' + data.data);
-                        await this.setStateAsync('testVariable', { val: data.data[0], ack: true });
-                    })
-                    .catch(e => {
-                        this.log.error(e.message);
-                    });
-            })
-            .catch(e => {
-                this.log.error(e.message);
-            });
+        this.log.info('Start sync');
+
+        await this.syncSmartWebObjects();
+
+        // client.setID(1);
+        // client.setTimeout(5000);
+        // client
+        //     .connectTCP('192.168.88.42', { port: 502 })
+        //     .then(async () => {
+        //         this.setStateAsync('info.connection', true);
+        //         this.log.info('Connected, wait fot read.');
+        //         this.log.info('isOpen = ' + client.isOpen);
+        //         await client
+        //             .readHoldingRegisters(145, 1)
+        //             .then(async data => {
+        //                 this.log.info('Data: ' + data.data);
+        //                 await this.setStateAsync('testVariable', { val: data.data[0], ack: true });
+        //             })
+        //             .catch(e => {
+        //                 this.log.error(e.message);
+        //             });
+        //     })
+        //     .catch(e => {
+        //         this.log.error(e.message);
+        //     });
 
         // modbus.tcp.connect(502, '192.168.88.31', { debug: 'automaton-2454' }, async (err, connection) => {
         //     if (err) {
@@ -116,7 +123,7 @@ class Smartweb extends utils.Adapter {
 		you will notice that each setState will cause the stateChange event to fire (because of above subscribeStates cmd)
 		*/
         // the variable testVariable is set to true as command (ack=false)
-        //await this.setStateAsync('testVariable', true);
+        await this.setStateAsync('testVariable', true);
 
         // same thing, but the value is flagged "ack"
         // ack should be always set to true if the value is received from or acknowledged from the target system
@@ -169,6 +176,119 @@ class Smartweb extends utils.Adapter {
             // The state was deleted
             this.log.info(`state ${id} deleted`);
         }
+    }
+
+    private async syncSmartWebObjects(): Promise<void> {
+        this.doLogin().then(sessiomId => {
+            this.downloadModbusProperties(sessiomId).then(body => {
+                const programms = this.doParseHTML(body);
+                programms.forEach(async (prg: Program) => {
+                    await this.setObjectAsync(prg.name, {
+                        type: 'state',
+                        common: {
+                            name: prg.name,
+                            type: 'string',
+                            read: true,
+                        },
+                        native: {
+                            id: prg.id,
+                        },
+                    });
+
+                    prg.params.forEach(async (param: Parameter) => {
+                        await this.setObjectAsync(prg.name + '.' + param.name, {
+                            type: 'state',
+                            common: {
+                                name: param.name,
+                                type: 'string',
+                                read: true,
+                                write: !param.isReadonly,
+                            },
+                            native: {
+                                register: param.regNumber,
+                                valueSize: param.valueSize,
+                            },
+                        });
+                    });
+                });
+            });
+        });
+    }
+
+    private async downloadModbusProperties(sessionId: string): Promise<string> {
+        return await axios
+            .get(`http://${this.config.host}/~sm/modbussw.html`, {
+                headers: {
+                    Accept: 'text/html',
+                    'Content-Type': 'text/html',
+                    Cookie: 'session_id=' + sessionId,
+                },
+            })
+            .then(async response => {
+                if (response.status == 200 && response.data != null) {
+                    return response.data;
+                } else {
+                    this.log.error(`Error code: ${response.status} in response`);
+                }
+                return '';
+            });
+    }
+
+    private async doLogin(): Promise<string> {
+        return await axios
+            .post(`http://${this.config.host}/rest.php`, {
+                mode: 'login',
+                login: this.config.login,
+                password: this.config.password,
+                long: 1,
+            })
+            .then(async response => {
+                let sessionId = '';
+                if (response.status == 200) {
+                    if (response.data == null) {
+                        return '';
+                    }
+                    if (response.data.status === 'ok') {
+                        sessionId = response.data.session_id;
+                    }
+                    this.log.info(`Session id: ${sessionId}`);
+                } else {
+                    this.log.error(`Error code: ${response.status} in response`);
+                }
+                return sessionId;
+            });
+    }
+
+    private doParseHTML(body: string): Map<number, Program> {
+        const $ = cheerio.load(body);
+
+        const trs = $('table')
+            .children('tbody')
+            .children('tr')
+            .toArray();
+
+        let programs = new Map<number, Program>();
+
+        for (const tr of trs) {
+            const header = parseHeader(tr.childNodes[0].childNodes[0].data);
+            const address = parseAddress(tr.childNodes[2].childNodes[0].data);
+            let adressSize = 1;
+            if (tr.childNodes[2].childNodes[1]) {
+                adressSize = parseAddressSize(tr.childNodes[2].childNodes[1].childNodes[0].data);
+            }
+
+            if (header) {
+                if (header.param == PROGRAM_HEADER_PARAM_NAME) {
+                    programs.set(header.id, new Program(header.id, header.program));
+                } else {
+                    programs
+                        .get(header.id)
+                        ?.addParam(header.param, address?.port, address?.isReadonly || true, adressSize);
+                }
+            }
+        }
+
+        return programs;
     }
 
     // /**
