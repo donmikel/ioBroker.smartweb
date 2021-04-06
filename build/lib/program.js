@@ -1,11 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-class Programm {
-    constructor(type, name, id, params) {
-        this.type = type;
+const parameter_1 = require("./parameter");
+class Program {
+    constructor(id, name) {
+        this.params = new Map();
         this.id = id;
         this.name = name;
-        this.params = params;
+    }
+    addParam(name, regNumber, isReadonly, valueSize) {
+        this.params.set(name, new parameter_1.Parameter(name, regNumber, isReadonly, valueSize));
+        return;
     }
 }
-exports.Programm = Programm;
+exports.Program = Program;

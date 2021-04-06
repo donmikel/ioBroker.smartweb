@@ -8,8 +8,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const axios_1 = require("axios");
+const axios_1 = __importDefault(require("axios"));
+const headerRegex = /(?:\()(?<num>\d+)(?:\)\s*)(?<type>.+)(?:\s*:\s*)(?<name>.+)/gi;
+const addressRegex = /(?:modbus:\s*)(?<port>\d+)\s*(?<readonly>R\/O)*/gi;
+const valueSizeRegex = /(?<id>\d+)\s*$/gi;
+exports.PROGRAM_HEADER_PARAM_NAME = 'Заголовок программы';
 /**
  * Tests whether the given variable is a real object and not an Array
  * @param it The variable to test
@@ -56,3 +63,41 @@ function translateText(text, targetLang) {
     });
 }
 exports.translateText = translateText;
+function parseHeader(text) {
+    var _a;
+    if (text) {
+        const match = headerRegex.exec(text);
+        if ((_a = match) === null || _a === void 0 ? void 0 : _a.groups) {
+            return {
+                id: Number(match.groups.num.trim()),
+                program: match.groups.type.trim(),
+                param: match.groups.name.trim(),
+            };
+        }
+    }
+}
+exports.parseHeader = parseHeader;
+function parseAddressSize(text) {
+    var _a;
+    if (text) {
+        const match = valueSizeRegex.exec(text);
+        if ((_a = match) === null || _a === void 0 ? void 0 : _a.groups) {
+            return Number(match.groups.id.trim()) | 1;
+        }
+    }
+    return 1;
+}
+exports.parseAddressSize = parseAddressSize;
+function parseAddress(text) {
+    var _a;
+    if (text) {
+        const match = addressRegex.exec(text);
+        if ((_a = match) === null || _a === void 0 ? void 0 : _a.groups) {
+            return {
+                port: Number(match.groups.port.trim()),
+                isReadonly: match.groups.readonly == 'R/O' ? true : false,
+            };
+        }
+    }
+}
+exports.parseAddress = parseAddress;
