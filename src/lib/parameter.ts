@@ -1,4 +1,4 @@
-export class Parameters {
+export class Parameter {
     private name: string;
     private value: unknown;
     private regNumber: number;
