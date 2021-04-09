@@ -262,7 +262,9 @@ class Smartweb extends utils.Adapter {
     private doParseHTML(body: string): Map<number, Program> {
         const $ = cheerio.load(body);
 
-        const trs = $('table')
+        const trs = $('body')
+            .children('table')
+            .eq(1)
             .children('tbody')
             .children('tr')
             .toArray();
@@ -270,6 +272,7 @@ class Smartweb extends utils.Adapter {
         let programs = new Map<number, Program>();
 
         for (const tr of trs) {
+            console.log(cheerio.html(tr));
             const header = parseHeader(tr.childNodes[0].childNodes[0].data);
             const address = parseAddress(tr.childNodes[2].childNodes[0].data);
             let adressSize = 1;

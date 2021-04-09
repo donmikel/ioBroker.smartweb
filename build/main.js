@@ -266,12 +266,15 @@ class Smartweb extends utils.Adapter {
     doParseHTML(body) {
         var _a, _b, _c;
         const $ = cheerio_1.default.load(body);
-        const trs = $('table')
+        const trs = $('body')
+            .children('table')
+            .eq(1)
             .children('tbody')
             .children('tr')
             .toArray();
         let programs = new Map();
         for (const tr of trs) {
+            console.log(cheerio_1.default.html(tr));
             const header = tools_1.parseHeader(tr.childNodes[0].childNodes[0].data);
             const address = tools_1.parseAddress(tr.childNodes[2].childNodes[0].data);
             let adressSize = 1;
