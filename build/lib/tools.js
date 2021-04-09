@@ -101,3 +101,19 @@ function parseAddress(text) {
     }
 }
 exports.parseAddress = parseAddress;
+function toStateName(programName, paramName) {
+    const reg = /(\.|\s)+/g;
+    let result = '';
+    result = programName.replace(reg, '_').toLowerCase();
+    if (paramName) {
+        result +=
+            '.' +
+                paramName
+                    .trim()
+                    .replace(/\.$/gi, '')
+                    .replace(reg, '_')
+                    .toLowerCase();
+    }
+    return result;
+}
+exports.toStateName = toStateName;

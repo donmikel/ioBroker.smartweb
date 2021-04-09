@@ -83,3 +83,20 @@ export function parseAddress(text: string | undefined) {
         }
     }
 }
+
+export function toStateName(programName: string, paramName?: string): string {
+    const reg = /(\.|\s)+/g;
+    let result = '';
+    result = programName.replace(reg, '_').toLowerCase();
+    if (paramName) {
+        result +=
+            '.' +
+            paramName
+                .trim()
+                .replace(/\.$/gi, '')
+                .replace(reg, '_')
+                .toLowerCase();
+    }
+
+    return result;
+}

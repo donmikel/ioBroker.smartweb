@@ -184,7 +184,7 @@ class Smartweb extends utils.Adapter {
                 this.downloadModbusProperties(sessiomId).then(body => {
                     const programms = this.doParseHTML(body);
                     programms.forEach((prg) => __awaiter(this, void 0, void 0, function* () {
-                        yield this.setObjectAsync(prg.name, {
+                        yield this.setObjectAsync(tools_1.toStateName(prg.name), {
                             type: 'state',
                             common: {
                                 name: prg.name,
@@ -196,7 +196,7 @@ class Smartweb extends utils.Adapter {
                             },
                         });
                         prg.params.forEach((param) => __awaiter(this, void 0, void 0, function* () {
-                            yield this.setObjectAsync(prg.name + '.' + param.name, {
+                            yield this.setObjectAsync(tools_1.toStateName(prg.name, param.name), {
                                 type: 'state',
                                 common: {
                                     name: param.name,

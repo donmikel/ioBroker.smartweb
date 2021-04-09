@@ -10,7 +10,7 @@ import cheerio from 'cheerio';
 import ModbusRTU from 'modbus-serial';
 import { Parameter } from './lib/parameter';
 import { Program } from './lib/program';
-import { parseAddress, parseAddressSize, parseHeader, PROGRAM_HEADER_PARAM_NAME } from './lib/tools';
+import { parseAddress, parseAddressSize, parseHeader, PROGRAM_HEADER_PARAM_NAME, toStateName } from './lib/tools';
 // Load your modules here, e.g.:
 // import * as fs from "fs";
 
@@ -183,7 +183,7 @@ class Smartweb extends utils.Adapter {
             this.downloadModbusProperties(sessiomId).then(body => {
                 const programms = this.doParseHTML(body);
                 programms.forEach(async (prg: Program) => {
-                    await this.setObjectAsync(prg.name, {
+                    await this.setObjectAsync(toStateName(prg.name), {
                         type: 'state',
                         common: {
                             name: prg.name,
@@ -196,7 +196,7 @@ class Smartweb extends utils.Adapter {
                     });
 
                     prg.params.forEach(async (param: Parameter) => {
-                        await this.setObjectAsync(prg.name + '.' + param.name, {
+                        await this.setObjectAsync(toStateName(prg.name, param.name), {
                             type: 'state',
                             common: {
                                 name: param.name,
