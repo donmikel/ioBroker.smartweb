@@ -6,11 +6,10 @@
 // you need to create an adapter
 import * as utils from '@iobroker/adapter-core';
 import axios from 'axios';
-import cheerio from 'cheerio';
 import ModbusRTU from 'modbus-serial';
 import { Parameter } from './lib/parameter';
 import { Program } from './lib/program';
-import { parseAddress, parseAddressSize, parseHeader, PROGRAM_HEADER_PARAM_NAME, toStateName } from './lib/tools';
+import { doParseHTML, toStateName } from './lib/tools';
 // Load your modules here, e.g.:
 // import * as fs from "fs";
 
@@ -29,7 +28,7 @@ import { parseAddress, parseAddressSize, parseHeader, PROGRAM_HEADER_PARAM_NAME,
 //     }
 // }
 
-class Smartweb extends utils.Adapter {
+export class Smartweb extends utils.Adapter {
     public constructor(options: Partial<ioBroker.AdapterOptions> = {}) {
         super({
             ...options,
@@ -179,9 +178,9 @@ class Smartweb extends utils.Adapter {
     }
 
     private async syncSmartWebObjects(): Promise<void> {
-        this.doLogin().then(sessiomId => {
-            this.downloadModbusProperties(sessiomId).then(body => {
-                const programms = this.doParseHTML(body);
+        this.doLogin(this.config.host).then(sessiomId => {
+            this.downloadModbusProperties(this.config.host, sessiomId).then(body => {
+                const programms = doParseHTML(body);
                 programms.forEach(async (prg: Program) => {
                     await this.setObjectAsync(toStateName(prg.name), {
                         type: 'state',
@@ -215,9 +214,9 @@ class Smartweb extends utils.Adapter {
         });
     }
 
-    private async downloadModbusProperties(sessionId: string): Promise<string> {
+    private async downloadModbusProperties(host: string, sessionId: string): Promise<string> {
         return await axios
-            .get(`http://${this.config.host}/~sm/modbussw.html`, {
+            .get(`http://${host}/~sm/modbussw.html`, {
                 headers: {
                     Accept: 'text/html',
                     'Content-Type': 'text/html',
@@ -234,9 +233,9 @@ class Smartweb extends utils.Adapter {
             });
     }
 
-    private async doLogin(): Promise<string> {
+    private async doLogin(host: string): Promise<string> {
         return await axios
-            .post(`http://${this.config.host}/rest.php`, {
+            .post(`http://${host}/rest.php`, {
                 mode: 'login',
                 login: this.config.login,
                 password: this.config.password,
@@ -257,41 +256,6 @@ class Smartweb extends utils.Adapter {
                 }
                 return sessionId;
             });
-    }
-
-    private doParseHTML(body: string): Map<number, Program> {
-        const $ = cheerio.load(body);
-
-        const trs = $('body')
-            .children('table')
-            .eq(1)
-            .children('tbody')
-            .children('tr')
-            .toArray();
-
-        let programs = new Map<number, Program>();
-
-        for (const tr of trs) {
-            console.log(cheerio.html(tr));
-            const header = parseHeader(tr.childNodes[0].childNodes[0].data);
-            const address = parseAddress(tr.childNodes[2].childNodes[0].data);
-            let adressSize = 1;
-            if (tr.childNodes[2].childNodes[1]) {
-                adressSize = parseAddressSize(tr.childNodes[2].childNodes[1].childNodes[0].data);
-            }
-
-            if (header) {
-                if (header.param == PROGRAM_HEADER_PARAM_NAME) {
-                    programs.set(header.id, new Program(header.id, header.program));
-                } else {
-                    programs
-                        .get(header.id)
-                        ?.addParam(header.param, address?.port, address?.isReadonly || true, adressSize);
-                }
-            }
-        }
-
-        return programs;
     }
 
     // /**

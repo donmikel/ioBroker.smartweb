@@ -21,5 +21,3 @@ describe('module to test => function to test', () => {
     });
     // ... more tests => it
 });
-
-// ... more test suites => describe

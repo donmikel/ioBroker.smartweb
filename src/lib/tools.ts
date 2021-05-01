@@ -1,4 +1,6 @@
 import axios from 'axios';
+import * as cheerio from 'cheerio';
+import { Program } from './program';
 
 const headerRegex = /(?:\()(?<num>\d+)(?:\)\s*)(?<type>.+)(?:\s*:\s*)(?<name>.+)/gi;
 const addressRegex = /(?:modbus:\s*)(?<port>\d+)\s*(?<readonly>R\/O)*/gi;
@@ -52,6 +54,7 @@ export async function translateText(text: string, targetLang: string): Promise<s
 export function parseHeader(text: string | undefined) {
     if (text) {
         const match = headerRegex.exec(text);
+        headerRegex.lastIndex = 0;
         if (match?.groups) {
             return {
                 id: Number(match.groups.num.trim()),
@@ -65,6 +68,7 @@ export function parseHeader(text: string | undefined) {
 export function parseAddressSize(text: string | undefined): number {
     if (text) {
         const match = valueSizeRegex.exec(text);
+        valueSizeRegex.lastIndex = 0;
         if (match?.groups) {
             return Number(match.groups.id.trim()) | 1;
         }
@@ -75,6 +79,7 @@ export function parseAddressSize(text: string | undefined): number {
 export function parseAddress(text: string | undefined) {
     if (text) {
         const match = addressRegex.exec(text);
+        addressRegex.lastIndex = 0;
         if (match?.groups) {
             return {
                 port: Number(match.groups.port.trim()),
@@ -99,4 +104,39 @@ export function toStateName(programName: string, paramName?: string): string {
     }
 
     return result;
+}
+
+export function doParseHTML(body: string): Map<number, Program> {
+    const $ = cheerio.load(body, { decodeEntities: false });
+
+    const trs = $('body')
+        .children('table')
+        .eq(1)
+        .children('tbody')
+        .children('tr')
+        .toArray();
+
+    let programs = new Map<number, Program>();
+    for (const tr of trs) {
+        if (tr.childNodes.length >= 3) {
+            const header = parseHeader(tr.childNodes[0].childNodes[0].data);
+            const programName = tr.childNodes[1].childNodes[0].data || '';
+            const address = parseAddress(tr.childNodes[2].childNodes[0].data);
+            let adressSize = 1;
+            if (tr.childNodes[2].childNodes[1]) {
+                adressSize = parseAddressSize(tr.childNodes[2].childNodes[1].childNodes[0].data);
+            }
+            if (header) {
+                if (header.param == PROGRAM_HEADER_PARAM_NAME) {
+                    programs.set(header.id, new Program(header.id, programName, header.program));
+                } else {
+                    programs
+                        .get(header.id)
+                        ?.addParam(header.param, address?.port, address?.isReadonly || true, adressSize);
+                }
+            }
+        }
+    }
+
+    return programs;
 }
