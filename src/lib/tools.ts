@@ -118,27 +118,23 @@ export function doParseHTML(body: string): Map<number, Program> {
 
     let programs = new Map<number, Program>();
     for (const tr of trs) {
-        if (tr.childNodes.length >= 3) {
-            const header = parseHeader(tr.childNodes[0].childNodes[0].data);
-            let programName = '';
-            if (tr.childNodes[1].childNodes[0]) {
-                programName = tr.childNodes[1].childNodes[0].data?.toString() || '';
+        const header = parseHeader(tr.childNodes[0].childNodes[0].data);
+        let programName = '';
+        if (tr.childNodes[1].childNodes[0]) {
+            programName = tr.childNodes[1].childNodes[0].data?.toString() || '';
+        } else {
+            programName = header?.program || '';
+        }
+        const address = parseAddress(tr.childNodes[2].childNodes[0].data);
+        let adressSize = 1;
+        if (tr.childNodes[2].childNodes[1]) {
+            adressSize = parseAddressSize(tr.childNodes[2].childNodes[1].childNodes[0].data);
+        }
+        if (header) {
+            if (header.param == PROGRAM_HEADER_PARAM_NAME) {
+                programs.set(header.id, new Program(header.id, programName, header.program));
             } else {
-                programName = header?.program || '';
-            }
-            const address = parseAddress(tr.childNodes[2].childNodes[0].data);
-            let adressSize = 1;
-            if (tr.childNodes[2].childNodes[1]) {
-                adressSize = parseAddressSize(tr.childNodes[2].childNodes[1].childNodes[0].data);
-            }
-            if (header) {
-                if (header.param == PROGRAM_HEADER_PARAM_NAME) {
-                    programs.set(header.id, new Program(header.id, programName, header.program));
-                } else {
-                    programs
-                        .get(header.id)
-                        ?.addParam(header.param, address?.port, address?.isReadonly || true, adressSize);
-                }
+                programs.get(header.id)?.addParam(header.param, address?.port, address?.isReadonly || true, adressSize);
             }
         }
     }

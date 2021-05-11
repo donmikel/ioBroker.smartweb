@@ -11,8 +11,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = __importDefault(require("axios"));
+const cheerio = __importStar(require("cheerio"));
+const program_1 = require("./program");
 const headerRegex = /(?:\()(?<num>\d+)(?:\)\s*)(?<type>.+)(?:\s*:\s*)(?<name>.+)/gi;
 const addressRegex = /(?:modbus:\s*)(?<port>\d+)\s*(?<readonly>R\/O)*/gi;
 const valueSizeRegex = /(?<id>\d+)\s*$/gi;
@@ -67,6 +76,7 @@ function parseHeader(text) {
     var _a;
     if (text) {
         const match = headerRegex.exec(text);
+        headerRegex.lastIndex = 0;
         if ((_a = match) === null || _a === void 0 ? void 0 : _a.groups) {
             return {
                 id: Number(match.groups.num.trim()),
@@ -81,6 +91,7 @@ function parseAddressSize(text) {
     var _a;
     if (text) {
         const match = valueSizeRegex.exec(text);
+        valueSizeRegex.lastIndex = 0;
         if ((_a = match) === null || _a === void 0 ? void 0 : _a.groups) {
             return Number(match.groups.id.trim()) | 1;
         }
@@ -92,6 +103,7 @@ function parseAddress(text) {
     var _a;
     if (text) {
         const match = addressRegex.exec(text);
+        addressRegex.lastIndex = 0;
         if ((_a = match) === null || _a === void 0 ? void 0 : _a.groups) {
             return {
                 port: Number(match.groups.port.trim()),
@@ -117,3 +129,39 @@ function toStateName(programName, paramName) {
     return result;
 }
 exports.toStateName = toStateName;
+function doParseHTML(body) {
+    var _a, _b, _c, _d, _e;
+    const $ = cheerio.load(body, { decodeEntities: false });
+    const trs = $('body')
+        .children('table')
+        .eq(1)
+        .children('tbody')
+        .children('tr')
+        .toArray();
+    let programs = new Map();
+    for (const tr of trs) {
+        const header = parseHeader(tr.childNodes[0].childNodes[0].data);
+        let programName = '';
+        if (tr.childNodes[1].childNodes[0]) {
+            programName = ((_a = tr.childNodes[1].childNodes[0].data) === null || _a === void 0 ? void 0 : _a.toString()) || '';
+        }
+        else {
+            programName = ((_b = header) === null || _b === void 0 ? void 0 : _b.program) || '';
+        }
+        const address = parseAddress(tr.childNodes[2].childNodes[0].data);
+        let adressSize = 1;
+        if (tr.childNodes[2].childNodes[1]) {
+            adressSize = parseAddressSize(tr.childNodes[2].childNodes[1].childNodes[0].data);
+        }
+        if (header) {
+            if (header.param == exports.PROGRAM_HEADER_PARAM_NAME) {
+                programs.set(header.id, new program_1.Program(header.id, programName, header.program));
+            }
+            else {
+                (_c = programs.get(header.id)) === null || _c === void 0 ? void 0 : _c.addParam(header.param, (_d = address) === null || _d === void 0 ? void 0 : _d.port, ((_e = address) === null || _e === void 0 ? void 0 : _e.isReadonly) || true, adressSize);
+            }
+        }
+    }
+    return programs;
+}
+exports.doParseHTML = doParseHTML;

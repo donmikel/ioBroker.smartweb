@@ -26,9 +26,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // you need to create an adapter
 const utils = __importStar(require("@iobroker/adapter-core"));
 const axios_1 = __importDefault(require("axios"));
-const cheerio_1 = __importDefault(require("cheerio"));
 const modbus_serial_1 = __importDefault(require("modbus-serial"));
-const program_1 = require("./lib/program");
 const tools_1 = require("./lib/tools");
 // Load your modules here, e.g.:
 // import * as fs from "fs";
@@ -180,9 +178,9 @@ class Smartweb extends utils.Adapter {
     }
     syncSmartWebObjects() {
         return __awaiter(this, void 0, void 0, function* () {
-            this.doLogin().then(sessiomId => {
-                this.downloadModbusProperties(sessiomId).then(body => {
-                    const programms = this.doParseHTML(body);
+            this.doLogin(this.config.host).then(sessiomId => {
+                this.downloadModbusProperties(this.config.host, sessiomId).then(body => {
+                    const programms = tools_1.doParseHTML(body);
                     programms.forEach((prg) => __awaiter(this, void 0, void 0, function* () {
                         yield this.setObjectAsync(tools_1.toStateName(prg.name), {
                             type: 'state',
@@ -215,10 +213,10 @@ class Smartweb extends utils.Adapter {
             });
         });
     }
-    downloadModbusProperties(sessionId) {
+    downloadModbusProperties(host, sessionId) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield axios_1.default
-                .get(`http://${this.config.host}/~sm/modbussw.html`, {
+                .get(`http://${host}/~sm/modbussw.html`, {
                 headers: {
                     Accept: 'text/html',
                     'Content-Type': 'text/html',
@@ -236,10 +234,10 @@ class Smartweb extends utils.Adapter {
             }));
         });
     }
-    doLogin() {
+    doLogin(host) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield axios_1.default
-                .post(`http://${this.config.host}/rest.php`, {
+                .post(`http://${host}/rest.php`, {
                 mode: 'login',
                 login: this.config.login,
                 password: this.config.password,
@@ -263,37 +261,8 @@ class Smartweb extends utils.Adapter {
             }));
         });
     }
-    doParseHTML(body) {
-        var _a, _b, _c;
-        const $ = cheerio_1.default.load(body);
-        const trs = $('body')
-            .children('table')
-            .eq(1)
-            .children('tbody')
-            .children('tr')
-            .toArray();
-        let programs = new Map();
-        for (const tr of trs) {
-            console.log(cheerio_1.default.html(tr));
-            const header = tools_1.parseHeader(tr.childNodes[0].childNodes[0].data);
-            const address = tools_1.parseAddress(tr.childNodes[2].childNodes[0].data);
-            let adressSize = 1;
-            if (tr.childNodes[2].childNodes[1]) {
-                adressSize = tools_1.parseAddressSize(tr.childNodes[2].childNodes[1].childNodes[0].data);
-            }
-            if (header) {
-                if (header.param == tools_1.PROGRAM_HEADER_PARAM_NAME) {
-                    programs.set(header.id, new program_1.Program(header.id, header.program));
-                }
-                else {
-                    (_a = programs
-                        .get(header.id)) === null || _a === void 0 ? void 0 : _a.addParam(header.param, (_b = address) === null || _b === void 0 ? void 0 : _b.port, ((_c = address) === null || _c === void 0 ? void 0 : _c.isReadonly) || true, adressSize);
-                }
-            }
-        }
-        return programs;
-    }
 }
+exports.Smartweb = Smartweb;
 if (module.parent) {
     // Export the constructor in compact mode
     module.exports = (options) => new Smartweb(options);
